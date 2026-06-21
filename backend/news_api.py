@@ -6,32 +6,23 @@ from flask import Blueprint, jsonify
 
 news_bp = Blueprint("news", __name__)
 
-
 @news_bp.route("/crypto-news", methods=["GET"])
 def get_crypto_news():
     current_time = int(time.time())
-
     try:
-        # GŁÓWNE ŹRÓDŁO: Oficjalny, stabilny kanał wiadomości gospodarczo-giełdowych z Bankier.pl
         url = "https://www.bankier.pl/rss/wiadomosci.xml"
 
         req = urllib.request.Request(
             url,
             headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
         )
-
-        # Pobieramy dane XML z serwera Bankier
         with urllib.request.urlopen(req, timeout=6) as response:
             xml_data = response.read().decode('utf-8', errors='ignore')
-
-        # Wyciągamy poszczególne sekcje wiadomości <item>
         items = re.findall(r'<item>(.*?)</item>', xml_data, re.DOTALL)
-
         if not items:
             raise ValueError("Pusty lub nieobsługiwany format RSS Bankier.pl")
-
         parsed_news = []
-        for index, item in enumerate(items[:10]):  # Pobieramy TOP 10 najświeższych informacji z parkietu
+        for index, item in enumerate(items[:10]):
             try:
                 title_match = re.search(r'<title>(.*?)</title>', item, re.DOTALL)
                 link_match = re.search(r'<link>(.*?)</link>', item, re.DOTALL)
@@ -49,12 +40,8 @@ def get_crypto_news():
                 if not clean_body:
                     clean_body = "Zapoznaj się z pełnym raportem giełdowym oraz analizą rynkową bezpośrednio na łamach portalu finansowego."
 
-                # Bankier podaje bardzo precyzyjne dane, przypisujemy czas chronologicznie (malejąco od teraz)
-                published_on = current_time - (index * 900)  # Symulacja odstępów 15-minutowych
-
-                # Biznesowa, elegancka grafika giełdowa z Unsplash jako uniwersalna miniatura
+                published_on = current_time - (index * 900)
                 image_url = "https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?q=80&w=400&auto=format&fit=crop"
-
                 parsed_news.append({
                     "id": f"bankier_{index}",
                     "title": html.unescape(title),
@@ -71,9 +58,7 @@ def get_crypto_news():
         return jsonify({"status": "success", "data": parsed_news}), 200
 
     except Exception as e:
-        # --- PROCEDURA AWARYJNA (NA WYPADEK BRAKU SIECI) ---
-        print(f"Błąd pobierania feedu Bankier.pl ({str(e)}). Uruchamiam krajowy bufor danych.")
-
+        print(f"Błąd pobierania danych Bankier.pl ({str(e)}). Uruchamiam krajowy bufor danych.")
         local_market_news = [
             {
                 "id": "gpw_mock_1",
@@ -94,5 +79,4 @@ def get_crypto_news():
                 "imageurl": "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?q=80&w=400&auto=format&fit=crop"
             }
         ]
-
         return jsonify({"status": "success", "data": local_market_news}), 200
