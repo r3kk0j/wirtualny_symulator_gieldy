@@ -8,7 +8,6 @@ from functools import wraps
 user_bp = Blueprint('user', __name__)
 engine = create_engine(DATABASE_URL)
 
-
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):

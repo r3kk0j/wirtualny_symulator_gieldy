@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_cors import CORS
-from user import user_bp  # Moduł użytkownika
-from ai_api import ai_bp  # Importujemy moduł AI
+from user import user_bp
+from ai_api import ai_bp
 from news_api import news_bp
 
 app = Flask(__name__)

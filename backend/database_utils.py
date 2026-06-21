@@ -3,7 +3,6 @@ from config import DATABASE_URL
 
 def get_db_connection():
     return create_engine(DATABASE_URL)
-
 def check_db_health():
     engine = get_db_connection()
     try:

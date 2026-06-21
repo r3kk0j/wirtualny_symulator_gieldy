@@ -32,7 +32,6 @@ def get_crypto_news():
                 link = link_match.group(1).strip() if link_match else "https://www.bankier.pl"
                 desc = desc_match.group(1).strip() if desc_match else ""
 
-                # Oczyszczanie CDATA oraz znaczników HTML
                 title = re.sub(r'<!\[CDATA\[(.*?)\]\]>', r'\1', title)
                 desc = re.sub(r'<!\[CDATA\[(.*?)\]\]>', r'\1', desc)
                 clean_body = re.sub(r'<[^>]*>', '', desc).strip()
