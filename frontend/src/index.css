@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+/* Ukrywa scrollbar we wszystkich przeglądarkach */
+.no-scrollbar {
+  scrollbar-width: none;         
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;                   /* Chrome, Safari, Opera */
+}
+
+@keyframes progressBar {
+  from { width: 0%; }
+  to   { width: 100%; }
+}
+
+.animate-progressBar {
+  animation: progressBar 2s linear forwards;
+}
+
+@keyframes buttonLoad {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+.animate-buttonLoad {
+  animation: buttonLoad 2s ease-out forwards;
+} 
+

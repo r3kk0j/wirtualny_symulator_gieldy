@@ -1,0 +1,11 @@
+pandas
+yfinance
+sqlalchemy
+psycopg2
+flask
+flask-cors
+matplotlib
+cikit-learn
+torch
+werkzeug
+sqlalchemy
