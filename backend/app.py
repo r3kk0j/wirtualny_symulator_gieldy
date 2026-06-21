@@ -12,6 +12,5 @@ app.register_blueprint(news_bp, url_prefix="/api")
 @app.route('/api/market-data', methods=['GET'])
 def get_data():
     return {"status": "ok"}
-
 if __name__ == '__main__':
     app.run(debug=True)

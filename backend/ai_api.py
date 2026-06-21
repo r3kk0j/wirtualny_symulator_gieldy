@@ -1,5 +1,4 @@
 import os
-import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
@@ -10,7 +9,6 @@ from sqlalchemy import create_engine
 
 ai_bp = Blueprint("ai", __name__)
 engine = create_engine(DATABASE_URL)
-
 
 class CryptoPredictor(nn.Module):
     def __init__(self, input_dim, hidden_dim, num_layers, output_dim):
@@ -27,17 +25,14 @@ class CryptoPredictor(nn.Module):
         out = self.fc(out[:, -1, :])
         return out
 
-
 model = CryptoPredictor(input_dim=1, hidden_dim=64, num_layers=2, output_dim=1)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODEL_PATH = os.path.join(BASE_DIR, "bitcoin_model.pth")
-
 try:
     model.load_state_dict(torch.load(MODEL_PATH, map_location=torch.device("cpu")), strict=False)
     model.eval()
 except Exception as e:
     print(f"Błąd ładowania modelu: {e}")
-
 
 @ai_bp.route("/ai-forecast", methods=["GET"])
 def get_ai_forecast():
@@ -48,7 +43,6 @@ def get_ai_forecast():
         target_start = pd.to_datetime(req_start)
         target_end = pd.to_datetime(req_end)
 
-        # 1. Pobranie danych z bazy
         df = pd.read_sql("SELECT timestamp, close_price FROM market_history ORDER BY timestamp ASC", engine)
         if df.empty:
             return jsonify({"message": "Baza danych jest pusta!"}), 400
@@ -56,17 +50,13 @@ def get_ai_forecast():
         df['timestamp'] = pd.to_datetime(df['timestamp'])
         df['ema_formula'] = df['close_price'].ewm(span=15, adjust=False).mean()
 
-        # Punkt odcięcia danych historycznych
         forecast_start_point = df['timestamp'].iloc[-1]
 
-        # Skalowanie pod AI
         scaler = MinMaxScaler(feature_range=(0, 1))
         scaler.fit(df["close_price"].values.reshape(-1, 1))
 
         last_60_days = df["close_price"].tail(60).values.reshape(-1, 1)
         current_sequence = scaler.transform(last_60_days).tolist()
-
-        # Generowanie prognoz tylko dla dat wykraczających poza bazę
         total_days_to_generate = (target_end - forecast_start_point).days
 
         generated_forecast = {}
@@ -93,8 +83,6 @@ def get_ai_forecast():
                 "price": round(pred_usd, 2),
                 "ema": round(last_ema, 2)
             }
-
-        # 2. Budowanie finalnej paczki dla frontendu przez cały zakres
         chart_data = []
         current_date = target_start
 
@@ -105,8 +93,6 @@ def get_ai_forecast():
             real_val = float(real_row['close_price'].values[0]) if not real_row.empty else None
             math_val = float(real_row['ema_formula'].values[0]) if not real_row.empty else None
             ai_val = None
-
-            # Jeśli wykraczamy poza bazę, bierzemy dane z wygenerowanej prognozy
             if current_date > forecast_start_point:
                 ai_data = generated_forecast.get(d_str)
                 if ai_data:
@@ -120,8 +106,6 @@ def get_ai_forecast():
                 "Math_Formula": round(math_val, 2) if math_val is not None else None
             })
             current_date += pd.Timedelta(days=1)
-
         return jsonify({"status": "success", "data": chart_data}), 200
-
     except Exception as e:
         return jsonify({"message": f"Błąd serwera: {str(e)}"}), 500
